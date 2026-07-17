@@ -1,0 +1,22 @@
+name: supplyflow
+
+services:
+  api:
+    image: supplyflow-api:local
+    build: { context: .., dockerfile: deploy/Dockerfile }
+    ports: ["${SUPPLYFLOW_HTTP_PORT:-8080}:8080"]
+    environment:
+      HTTP_ADDR: ":8080"
+      MYSQL_DSN: supplyflow:supplyflow@tcp(mysql:3306)/supplyflow?parseTime=true&charset=utf8mb4
+      REDIS_ADDR: redis:6379
+    depends_on:
+      mysql: { condition: service_healthy }
+      redis: { condition: service_healthy }
+  mysql:
+    image: mysql:8.4
+    environment: { MYSQL_DATABASE: supplyflow, MYSQL_USER: supplyflow, MYSQL_PASSWORD: supplyflow, MYSQL_ROOT_PASSWORD: change-me }
+    volumes: ["./mysql/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro"]
+    healthcheck: { test: ["CMD-SHELL", "mysql --protocol=TCP --host=127.0.0.1 --user=supplyflow --password=supplyflow --database=supplyflow -e 'SELECT 1' >/dev/null 2>&1"], interval: 5s, timeout: 3s, retries: 30 }
+  redis:
+    image: redis:8-alpine
+    healthcheck: { test: ["CMD", "redis-cli", "ping"], interval: 5s, timeout: 3s, retries: 20 }
