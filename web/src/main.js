@@ -4,18 +4,18 @@ import { createApiClient } from './api.js'
 const api = createApiClient()
 
 const demoAppointments = [
-  { id: 'AP-0716-082', patient: '林晓雨', department: '全科门诊', doctor: '林负责人', scheduledAt: '2026-07-16T09:30:00+08:00', status: '候诊中' },
-  { id: 'AP-0716-081', patient: '沈明远', department: '皮肤科', doctor: '沈负责人', scheduledAt: '2026-07-16T09:45:00+08:00', status: '已确认' },
-  { id: 'AP-0716-080', patient: '赵思涵', department: '康复理疗', doctor: '赵负责人', scheduledAt: '2026-07-16T10:00:00+08:00', status: '已完成' },
-  { id: 'AP-0716-079', patient: '周子昂', department: '全科门诊', doctor: '林负责人', scheduledAt: '2026-07-16T10:15:00+08:00', status: '待确认' },
-  { id: 'AP-0716-078', patient: '许安然', department: '营养咨询', doctor: '周负责人', scheduledAt: '2026-07-16T10:30:00+08:00', status: '待确认' },
+  { id: 'PO-0716-082', patient: '杭州星河家居', department: '智能家电', doctor: '林然 · 采购专员', scheduledAt: '2026-07-16T09:30:00+08:00', status: '候诊中' },
+  { id: 'PO-0716-081', patient: '苏州云杉供应商', department: '清洁电器', doctor: '沈宁 · 采购专员', scheduledAt: '2026-07-16T09:45:00+08:00', status: '已确认' },
+  { id: 'PO-0716-080', patient: '上海岸线工程', department: '五金配件', doctor: '赵然 · 采购专员', scheduledAt: '2026-07-16T10:00:00+08:00', status: '已完成' },
+  { id: 'PO-0716-079', patient: '南京微光零售', department: '仓储耗材', doctor: '林然 · 采购专员', scheduledAt: '2026-07-16T10:15:00+08:00', status: '待确认' },
+  { id: 'PO-0716-078', patient: '成都山海餐饮', department: '冷链食材', doctor: '周宁 · 采购专员', scheduledAt: '2026-07-16T10:30:00+08:00', status: '待确认' },
 ]
 
 const demoFollowups = [
-  { id: 'FW-0716-012', patient: '林晓雨', summary: '术后一周恢复提醒', dueAt: '今天 16:00', status: '待完成' },
-  { id: 'FW-0716-011', patient: '周子昂', summary: '用药依从性回访', dueAt: '今天 17:30', status: '待完成' },
-  { id: 'FW-0716-010', patient: '沈明远', summary: '皮肤复诊提醒', dueAt: '明天 09:30', status: '待完成' },
-  { id: 'FW-0715-009', patient: '赵思涵', summary: '康复训练记录', dueAt: '已完成', status: '已完成' },
+  { id: 'TASK-0716-012', patient: '杭州星河家居', summary: '确认供应商交期与到货批次', dueAt: '今天 16:00', status: '待完成' },
+  { id: 'TASK-0716-011', patient: '苏州云杉供应商', summary: '跟进对账单与采购合同', dueAt: '今天 17:30', status: '待完成' },
+  { id: 'TASK-0716-010', patient: '上海岸线工程', summary: '补齐入库质检记录', dueAt: '明天 09:30', status: '待完成' },
+  { id: 'TASK-0715-009', patient: '南京微光零售', summary: '完成本周采购归档', dueAt: '已完成', status: '已完成' },
 ]
 
 const demoDashboard = { todayAppointments: 86, averageWaitMinutes: 12, completed: 58, checkedIn: 42, pendingFollowups: 12 }
@@ -23,9 +23,9 @@ const statusColors = { 待确认: 'coral', 已确认: 'indigo', 候诊中: 'ambe
 const nav = [
   ['overview', '运营总览', '⌂'],
   ['queue', '采购单队列', '▤'],
-  ['doctors', '负责人排班', '◉'],
-  ['patients', '客户档案', '♧'],
-  ['followups', '回访任务', '✓'],
+  ['doctors', '采购专员排班', '◉'],
+  ['patients', '供应商台账', '♧'],
+  ['followups', '采购跟进', '✓'],
   ['mobile', '移动端体验', '⌁'],
 ]
 
