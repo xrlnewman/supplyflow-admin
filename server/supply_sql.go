@@ -130,7 +130,7 @@ func (s *SupplySQLStore) queryQuotes(ctx context.Context, id string) ([]Supplier
 	return out, rows.Err()
 }
 func (s *SupplySQLStore) queryReceipts(ctx context.Context, id string) ([]Receipt, error) {
-	rows, err := s.db.QueryContext(ctx, `SELECT id,request_id,order_id,quantity,warehouse,received_at,status FROM goods_receipts WHERE request_id=? ORDER BY received_at`, id)
+	rows, err := s.db.QueryContext(ctx, `SELECT id,request_id,COALESCE(order_id,''),quantity,COALESCE(warehouse,''),received_at,status FROM goods_receipts WHERE request_id=? ORDER BY received_at`, id)
 	if err != nil {
 		return nil, err
 	}
@@ -146,7 +146,7 @@ func (s *SupplySQLStore) queryReceipts(ctx context.Context, id string) ([]Receip
 	return out, rows.Err()
 }
 func (s *SupplySQLStore) queryChecks(ctx context.Context, id string) ([]QualityCheck, error) {
-	rows, err := s.db.QueryContext(ctx, `SELECT id,request_id,receipt_id,passed,note,checked_at FROM quality_checks WHERE request_id=? ORDER BY checked_at`, id)
+	rows, err := s.db.QueryContext(ctx, `SELECT id,request_id,COALESCE(receipt_id,''),passed,COALESCE(note,''),checked_at FROM quality_checks WHERE request_id=? ORDER BY checked_at`, id)
 	if err != nil {
 		return nil, err
 	}
