@@ -470,7 +470,7 @@ func registerSupplyRoutes(api *gin.RouterGroup, svc *SupplyService) {
 	api.POST("/purchase-requests/:id/quotes", func(c *gin.Context) {
 		var in AddSupplierQuoteInput
 		if e := c.ShouldBindJSON(&in); e != nil {
-			fail(c, e)
+			fail(c, fmt.Errorf("%w: %v", ErrInvalidInput, e))
 			return
 		}
 		r, e := svc.AddSupplierQuote(c.Request.Context(), c.Param("id"), in, c.GetHeader("Idempotency-Key"))
@@ -499,7 +499,7 @@ func registerSupplyRoutes(api *gin.RouterGroup, svc *SupplyService) {
 	api.POST("/purchase-requests/:id/receipt", func(c *gin.Context) {
 		var in ReceivePurchaseInput
 		if e := c.ShouldBindJSON(&in); e != nil {
-			fail(c, e)
+			fail(c, fmt.Errorf("%w: %v", ErrInvalidInput, e))
 			return
 		}
 		r, e := svc.ReceivePurchaseRequest(c.Request.Context(), c.Param("id"), in, c.GetHeader("Idempotency-Key"))
@@ -512,7 +512,7 @@ func registerSupplyRoutes(api *gin.RouterGroup, svc *SupplyService) {
 	api.POST("/purchase-requests/:id/reconcile", func(c *gin.Context) {
 		var in ReconcileInput
 		if e := c.ShouldBindJSON(&in); e != nil {
-			fail(c, e)
+			fail(c, fmt.Errorf("%w: %v", ErrInvalidInput, e))
 			return
 		}
 		r, e := svc.ReconcilePurchaseRequest(c.Request.Context(), c.Param("id"), in, c.GetHeader("Idempotency-Key"))
