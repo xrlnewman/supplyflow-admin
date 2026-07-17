@@ -37,6 +37,11 @@ let toast = ''
 let toastTimer
 let dataSource = '演示数据'
 let isSyncing = false
+let purchaseRequests = [
+  { id: 'PR-202607-001', requester: '采购部', reason: '无线吸尘器安全库存补货', estimatedAmount: '4,788.80', status: '询价中' },
+  { id: 'PR-202607-002', requester: '门店运营', reason: '空气净化器季度采购', estimatedAmount: '12,600.00', status: '待审批' },
+  { id: 'PR-202607-003', requester: '仓储中心', reason: '扫地机器人到货核验', estimatedAmount: '8,420.00', status: '部分到货' },
+]
 
 function displayCopy(root) {
   const rules = [['候诊', '待入库'], ['健康回访', '供应商跟进'], ['回访', '采购跟进'], ['临床', '采购'], ['科室', '采购品类'], ['人次', '单'], ['位客户', '家供应商'], ['诊断', '真实采购'], ['林负责人', '林然 · 采购专员'], ['沈负责人', '沈宁 · 采购专员'], ['赵负责人', '赵然 · 采购专员'], ['周负责人', '周宁 · 采购专员'], ['陈负责人', '陈敏 · 采购专员'], ['王负责人', '王可 · 采购专员'], ['全科门诊', '智能家电'], ['皮肤科', '清洁电器'], ['康复理疗', '五金配件'], ['营养咨询', '仓储耗材'], ['就诊', '采购'], ['CF-', 'SUP-']]
@@ -104,7 +109,12 @@ function render() {
 }
 
 function overview() {
-  return `<section class="metrics"><article class="metric dark"><span>今日采购单</span><strong>${dashboard.todayAppointments}</strong><small>↗ 较昨日 +14.6%</small></article><article class="metric"><span>平均候诊</span><strong>${dashboard.averageWaitMinutes}<small> 分钟</small></strong><small class="good">较上周 -3 分钟</small></article><article class="metric"><span>今日完成</span><strong>${dashboard.completed}<small> 人次</small></strong><div class="progress"><i style="width:68%"></i></div></article><article class="metric warm"><span>待回访</span><strong>${dashboard.pendingFollowups}<small> 条</small></strong><small class="coral">今日需完成</small></article></section><section class="grid"><article class="panel calendar"><div class="panel-head"><div><h2>今日采购单队列</h2><p>7 月 16 日 · 周四 · 共 ${dashboard.todayAppointments} 位客户</p></div><button class="link" data-page="queue">查看队列 →</button></div><div class="timeline">${appointments.slice(0, 4).map((appointment) => `<div class="time-row"><span>${timeLabel(appointment.scheduledAt)}</span><i class="time-dot ${statusColors[appointment.status] || 'indigo'}"></i><div><strong>${appointment.patient}</strong><small>${appointment.department} · ${appointment.status}</small></div><b class="status ${statusColors[appointment.status] || 'indigo'}">${appointment.status}</b></div>`).join('')}</div></article><article class="panel"><div class="panel-head"><div><h2>科室处理负载</h2><p>当前时段排班利用率</p></div><button class="link" data-page="doctors">排班管理 →</button></div><div class="load-list">${[['全科门诊', '32 / 40', '80%', 'indigo'], ['皮肤科', '18 / 24', '75%', 'coral'], ['康复理疗', '12 / 18', '67%', 'green'], ['营养咨询', '8 / 12', '66%', 'amber']].map((item) => `<div class="load"><div><strong>${item[0]}</strong><span>${item[1]}</span></div><div class="load-bar"><i class="${item[3]}" style="width:${item[2]}"></i></div><b>${item[2]}</b></div>`).join('')}</div></article></section><section class="grid lower"><article class="panel"><div class="panel-head"><div><h2>回访完成趋势</h2><p>近 7 日任务完成率</p></div><span class="legend">本周平均 84%</span></div><div class="spark"><i style="height:38%"></i><i style="height:58%"></i><i style="height:46%"></i><i style="height:74%"></i><i style="height:66%"></i><i style="height:88%"></i><i class="today" style="height:80%"></i></div><div class="days"><span>周五</span><span>周六</span><span>周日</span><span>周一</span><span>周二</span><span>周三</span><span>今天</span></div></article><article class="panel tasks"><div class="panel-head"><div><h2>待办提醒</h2><p>需要运营人员跟进的事项</p></div></div><div class="task"><span class="task-icon coral">!</span><div><strong>3 位客户需要改约</strong><small>采购单队列 · 10 分钟前</small></div><button data-page="queue">处理</button></div><div class="task"><span class="task-icon amber">✓</span><div><strong>${dashboard.pendingFollowups} 条回访今日到期</strong><small>健康回访 · 32 分钟前</small></div><button data-page="followups">查看</button></div></article></section>`
+  return `<section class="metrics"><article class="metric dark"><span>今日采购单</span><strong>${dashboard.todayAppointments}</strong><small>↗ 较昨日 +14.6%</small></article><article class="metric"><span>平均候诊</span><strong>${dashboard.averageWaitMinutes}<small> 分钟</small></strong><small class="good">较上周 -3 分钟</small></article><article class="metric"><span>今日完成</span><strong>${dashboard.completed}<small> 人次</small></strong><div class="progress"><i style="width:68%"></i></div></article><article class="metric warm"><span>待回访</span><strong>${dashboard.pendingFollowups}<small> 条</small></strong><small class="coral">今日需完成</small></article></section><section class="grid"><article class="panel calendar"><div class="panel-head"><div><h2>今日采购单队列</h2><p>7 月 16 日 · 周四 · 共 ${dashboard.todayAppointments} 位客户</p></div><button class="link" data-page="queue">查看队列 →</button></div><div class="timeline">${appointments.slice(0, 4).map((appointment) => `<div class="time-row"><span>${timeLabel(appointment.scheduledAt)}</span><i class="time-dot ${statusColors[appointment.status] || 'indigo'}"></i><div><strong>${appointment.patient}</strong><small>${appointment.department} · ${appointment.status}</small></div><b class="status ${statusColors[appointment.status] || 'indigo'}">${appointment.status}</b></div>`).join('')}</div></article><article class="panel"><div class="panel-head"><div><h2>科室处理负载</h2><p>当前时段排班利用率</p></div><button class="link" data-page="doctors">排班管理 →</button></div><div class="load-list">${[['全科门诊', '32 / 40', '80%', 'indigo'], ['皮肤科', '18 / 24', '75%', 'coral'], ['康复理疗', '12 / 18', '67%', 'green'], ['营养咨询', '8 / 12', '66%', 'amber']].map((item) => `<div class="load"><div><strong>${item[0]}</strong><span>${item[1]}</span></div><div class="load-bar"><i class="${item[3]}" style="width:${item[2]}"></i></div><b>${item[2]}</b></div>`).join('')}</div></article></section><section class="grid lower"><article class="panel"><div class="panel-head"><div><h2>回访完成趋势</h2><p>近 7 日任务完成率</p></div><span class="legend">本周平均 84%</span></div><div class="spark"><i style="height:38%"></i><i style="height:58%"></i><i style="height:46%"></i><i style="height:74%"></i><i style="height:66%"></i><i style="height:88%"></i><i class="today" style="height:80%"></i></div><div class="days"><span>周五</span><span>周六</span><span>周日</span><span>周一</span><span>周二</span><span>周三</span><span>今天</span></div></article><article class="panel tasks"><div class="panel-head"><div><h2>待办提醒</h2><p>需要运营人员跟进的事项</p></div></div><div class="task"><span class="task-icon coral">!</span><div><strong>3 位客户需要改约</strong><small>采购单队列 · 10 分钟前</small></div><button data-page="queue">处理</button></div><div class="task"><span class="task-icon amber">✓</span><div><strong>${dashboard.pendingFollowups} 条回访今日到期</strong><small>健康回访 · 32 分钟前</small></div><button data-page="followups">查看</button></div></article></section>${supplyWorkflowPanel()}`
+}
+
+function supplyWorkflowPanel() {
+  const stages = ['草稿', '询价中', '待审批', '已下单', '部分到货', '已质检', '已入库']
+  return `<section class="panel full workflow-panel"><div class="panel-head"><div><h2>采购闭环工作台</h2><p>申请 → 询价比价 → 审批 → 下单 → 收货质检 → 入库核销</p></div><span class="chip">${purchaseRequests.length} 条真实业务记录</span></div><div class="workflow-stages">${stages.map((stage) => `<span>${stage}</span>`).join('<i>→</i>')}</div><div class="table"><div class="th"><span>申请单 / 申请人</span><span>采购原因</span><span>金额（CNY）</span><span>当前状态</span><span>下一步</span></div>${purchaseRequests.map((item) => `<div class="tr"><span><strong>${item.id}</strong><small>${item.requester}</small></span><span>${item.reason}</span><span>¥${item.estimatedAmount}</span><b class="status indigo">${item.status}</b><button class="text-action" data-workflow="supply" data-request-id="${item.id}" data-status="${item.status}">${item.status === '询价中' ? '提交审批' : item.status === '待审批' ? '生成订单' : item.status === '部分到货' ? '登记质检' : '查看详情'}</button></div>`).join('')}</div></section>`
 }
 
 function queue() {
@@ -132,14 +142,16 @@ async function refreshFromApi({ quiet = false } = {}) {
   isSyncing = true
   render()
   try {
-    const [nextDashboard, nextAppointments, nextFollowups] = await Promise.all([
+    const [nextDashboard, nextAppointments, nextFollowups, nextPurchaseRequests] = await Promise.all([
       api.getDashboard(),
       api.listAppointments({ page: 1, pageSize: 20 }),
       api.listFollowups({ page: 1, pageSize: 20 }),
+      api.listPurchaseRequests({ page: 1, pageSize: 20 }),
     ])
     dashboard = { ...demoDashboard, ...nextDashboard }
     appointments = (nextAppointments?.list || []).map(normalizeAppointment)
     followupTasks = (nextFollowups?.list || []).map(normalizeFollowup)
+    if (Array.isArray(nextPurchaseRequests?.list) && nextPurchaseRequests.list.length) purchaseRequests = nextPurchaseRequests.list
     dataSource = 'API 数据'
     if (!quiet) toast = '已从 SupplyFlow API 刷新数据'
   } catch (error) {
@@ -149,6 +161,22 @@ async function refreshFromApi({ quiet = false } = {}) {
     isSyncing = false
     render()
   }
+}
+
+async function advanceSupplyWorkflow(button) {
+  const id = button.dataset.requestId
+  const item = purchaseRequests.find((entry) => entry.id === id)
+  if (!item) return
+  try {
+    let updated
+    if (item.status === '询价中') updated = await api.approvePurchaseRequest(id)
+    else if (item.status === '待审批') updated = await api.orderPurchaseRequest(id)
+    else if (item.status === '部分到货') updated = await api.reconcilePurchaseRequest(id, { passed: true, note: '后台质检复核' })
+    else { const detail = await api.getPurchaseRequest(id); showToast(`已打开 ${detail.id} 详情，共 ${(detail.events || []).length} 条事件`); return }
+    purchaseRequests = purchaseRequests.map((entry) => entry.id === id ? { ...entry, ...updated } : entry)
+    dataSource = 'API 数据'
+    showToast(`${id} 已推进至 ${updated.status}`)
+  } catch (error) { showToast(`操作未完成：${error.message}`) }
 }
 
 function replaceAppointment(updated) {
@@ -213,6 +241,7 @@ function bind() {
     if (element.dataset.action === 'create-appointment') return createAppointment()
     return undefined
   }))
+  document.querySelectorAll('[data-workflow="supply"]').forEach((element) => element.addEventListener('click', () => advanceSupplyWorkflow(element)))
 }
 
 render()

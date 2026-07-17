@@ -66,6 +66,13 @@ export function createApiClient({ baseUrl, fetchImpl = globalThis.fetch } = {}) 
     listFollowups: (query) => request(withQuery('/followups', query)),
     createFollowup: (input, idempotencyKey) => request('/followups', { method: 'POST', body: input, idempotencyKey }),
     completeFollowup: (id, idempotencyKey) => request(`/followups/${encodeURIComponent(id)}/complete`, { method: 'POST', idempotencyKey }),
+    listPurchaseRequests: (query) => request(withQuery('/purchase-requests', query)),
+    getPurchaseRequest: (id) => request(`/purchase-requests/${encodeURIComponent(id)}`),
+    addSupplierQuote: (id, input, idempotencyKey) => request(`/purchase-requests/${encodeURIComponent(id)}/quotes`, { method: 'POST', body: input, idempotencyKey }),
+    approvePurchaseRequest: (id, idempotencyKey) => request(`/purchase-requests/${encodeURIComponent(id)}/approve`, { method: 'POST', idempotencyKey }),
+    orderPurchaseRequest: (id, idempotencyKey) => request(`/purchase-requests/${encodeURIComponent(id)}/order`, { method: 'POST', idempotencyKey }),
+    receivePurchaseRequest: (id, input, idempotencyKey) => request(`/purchase-requests/${encodeURIComponent(id)}/receipt`, { method: 'POST', body: input, idempotencyKey }),
+    reconcilePurchaseRequest: (id, input, idempotencyKey) => request(`/purchase-requests/${encodeURIComponent(id)}/reconcile`, { method: 'POST', body: input, idempotencyKey }),
   }
 }
 

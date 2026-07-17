@@ -59,6 +59,19 @@ test('rejects non-zero API envelopes so callers can keep demo data', async () =>
   await assert.rejects(() => client.updateAppointmentStatus('AP-1', '候诊中'), /状态不可推进/)
 })
 
+test('采购闭环客户端覆盖列表、比价、审批、收货质检与核销', async () => {
+  const calls = []
+  const client = createApiClient({ fetchImpl: async (url, init = {}) => { calls.push({ url, init }); return response({ id: 'PR-1', status: '询价中' }) } })
+  await client.listPurchaseRequests({ keyword: '滤芯', status: '询价中', page: 1 })
+  await client.getPurchaseRequest('PR-1')
+  await client.addSupplierQuote('PR-1', { supplier: '星链', amount: '99.90' })
+  await client.approvePurchaseRequest('PR-1')
+  await client.orderPurchaseRequest('PR-1')
+  await client.receivePurchaseRequest('PR-1', { quantity: 2 })
+  await client.reconcilePurchaseRequest('PR-1', { passed: true })
+  assert.deepEqual(calls.map(({ url }) => url), ['/api/v1/purchase-requests?keyword=%E6%BB%A4%E8%8A%AF&status=%E8%AF%A2%E4%BB%B7%E4%B8%AD&page=1', '/api/v1/purchase-requests/PR-1', '/api/v1/purchase-requests/PR-1/quotes', '/api/v1/purchase-requests/PR-1/approve', '/api/v1/purchase-requests/PR-1/order', '/api/v1/purchase-requests/PR-1/receipt', '/api/v1/purchase-requests/PR-1/reconcile'])
+})
+
 test('exposes mobile lifecycle and follow-up operations through the same client', async () => {
   const paths = []
   const client = createApiClient({
