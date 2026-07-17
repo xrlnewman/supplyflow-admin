@@ -14,6 +14,8 @@ type SupplySQLStore struct{ db *sql.DB }
 
 func NewSupplySQLStore(db *sql.DB) *SupplySQLStore { return &SupplySQLStore{db: db} }
 
+func mysqlNow() string { return time.Now().UTC().Format("2006-01-02 15:04:05.999999") }
+
 func (s *SupplySQLStore) ListPurchaseRequests(ctx context.Context, page, pageSize int, keyword, status string) ([]PurchaseRequest, int, error) {
 	page, pageSize = normalizePage(page, pageSize)
 	where := []string{"1=1"}
@@ -205,7 +207,7 @@ func (s *SupplySQLStore) CreatePurchaseRequest(ctx context.Context, request Purc
 		request.Currency = "CNY"
 	}
 	if request.CreatedAt == "" {
-		request.CreatedAt = nowUTC()
+		request.CreatedAt = mysqlNow()
 	}
 	request.UpdatedAt = request.CreatedAt
 	tx, err := s.db.BeginTx(ctx, nil)
@@ -252,7 +254,7 @@ func (s *SupplySQLStore) transitionTx(ctx context.Context, tx *sql.Tx, id, to, a
 	if !allowed[from][to] {
 		return ErrSupplyInvalidTransition
 	}
-	now := nowUTC()
+	now := mysqlNow()
 	if _, err := tx.ExecContext(ctx, `UPDATE purchase_requests SET status=?,updated_at=? WHERE id=?`, to, now, id); err != nil {
 		return err
 	}
@@ -274,7 +276,7 @@ func (s *SupplySQLStore) AddSupplierQuote(ctx context.Context, id string, in Add
 	if status != SupplyDraft && status != SupplyQuoting {
 		return ErrSupplyInvalidTransition
 	}
-	if _, e = tx.ExecContext(ctx, `INSERT INTO supplier_quotes (id,request_id,supplier,amount,delivery_days,status,created_at) VALUES (?,?,?,?,?,?,?)`, fmt.Sprintf("QUOTE-%d", time.Now().UnixNano()), id, in.Supplier, decimalOrZero(in.Amount), in.DeliveryDays, "待比较", nowUTC()); e != nil {
+	if _, e = tx.ExecContext(ctx, `INSERT INTO supplier_quotes (id,request_id,supplier,amount,delivery_days,status,created_at) VALUES (?,?,?,?,?,?,?)`, fmt.Sprintf("QUOTE-%d", time.Now().UnixNano()), id, in.Supplier, decimalOrZero(in.Amount), in.DeliveryDays, "待比较", mysqlNow()); e != nil {
 		return e
 	}
 	if status == SupplyDraft {
@@ -310,7 +312,7 @@ func (s *SupplySQLStore) OrderPurchaseRequest(ctx context.Context, id string) er
 	} else if e != nil {
 		return e
 	}
-	if _, e = tx.ExecContext(ctx, `INSERT INTO purchase_orders (id,request_id,supplier,amount,status,created_at) VALUES (?,?,?,?,?,?) ON DUPLICATE KEY UPDATE status=VALUES(status)`, fmt.Sprintf("PO-%d", time.Now().UnixNano()), id, supplier, decimalOrZero(amount), "执行中", nowUTC()); e != nil {
+	if _, e = tx.ExecContext(ctx, `INSERT INTO purchase_orders (id,request_id,supplier,amount,status,created_at) VALUES (?,?,?,?,?,?) ON DUPLICATE KEY UPDATE status=VALUES(status)`, fmt.Sprintf("PO-%d", time.Now().UnixNano()), id, supplier, decimalOrZero(amount), "执行中", mysqlNow()); e != nil {
 		return e
 	}
 	return tx.Commit()
@@ -330,7 +332,7 @@ func (s *SupplySQLStore) ReceivePurchaseRequest(ctx context.Context, id string, 
 	} else if e != nil {
 		return e
 	}
-	if _, e = tx.ExecContext(ctx, `INSERT INTO goods_receipts (id,request_id,order_id,quantity,warehouse,received_at,status) VALUES (?,?,?,?,?,?,?)`, fmt.Sprintf("GRN-%d", time.Now().UnixNano()), id, orderID, in.Quantity, in.Warehouse, nowUTC(), "待质检"); e != nil {
+	if _, e = tx.ExecContext(ctx, `INSERT INTO goods_receipts (id,request_id,order_id,quantity,warehouse,received_at,status) VALUES (?,?,?,?,?,?,?)`, fmt.Sprintf("GRN-%d", time.Now().UnixNano()), id, orderID, in.Quantity, in.Warehouse, mysqlNow(), "待质检"); e != nil {
 		return e
 	}
 	return tx.Commit()
@@ -357,7 +359,7 @@ func (s *SupplySQLStore) ReconcilePurchaseRequest(ctx context.Context, id string
 		} else if e != nil {
 			return e
 		}
-		if _, e = tx.ExecContext(ctx, `INSERT INTO quality_checks (id,request_id,receipt_id,passed,note,checked_at) VALUES (?,?,?,?,?,?)`, fmt.Sprintf("QC-%d", time.Now().UnixNano()), id, receiptID, true, in.Note, nowUTC()); e != nil {
+		if _, e = tx.ExecContext(ctx, `INSERT INTO quality_checks (id,request_id,receipt_id,passed,note,checked_at) VALUES (?,?,?,?,?,?)`, fmt.Sprintf("QC-%d", time.Now().UnixNano()), id, receiptID, true, in.Note, mysqlNow()); e != nil {
 			return e
 		}
 		if e = s.transitionTx(ctx, tx, id, SupplyQCed, "质检员", "质检合格"); e != nil {
@@ -392,7 +394,7 @@ func (s *SupplySQLStore) ReconcilePurchaseRequest(ctx context.Context, id string
 		}
 		rows.Close()
 		for _, item := range items {
-			if _, e = tx.ExecContext(ctx, `INSERT INTO stock_entries (id,request_id,sku,quantity,warehouse,created_at) VALUES (?,?,?,?,?,?)`, fmt.Sprintf("STK-%d", time.Now().UnixNano()), id, item.sku, item.quantity, "华东一号仓", nowUTC()); e != nil {
+			if _, e = tx.ExecContext(ctx, `INSERT INTO stock_entries (id,request_id,sku,quantity,warehouse,created_at) VALUES (?,?,?,?,?,?)`, fmt.Sprintf("STK-%d", time.Now().UnixNano()), id, item.sku, item.quantity, "华东一号仓", mysqlNow()); e != nil {
 				return e
 			}
 		}
