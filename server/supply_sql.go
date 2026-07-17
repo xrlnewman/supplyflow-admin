@@ -370,19 +370,31 @@ func (s *SupplySQLStore) ReconcilePurchaseRequest(ctx context.Context, id string
 		if e != nil {
 			return e
 		}
-		defer rows.Close()
+		items := []struct {
+			sku      string
+			quantity int
+		}{}
 		for rows.Next() {
 			var sku string
 			var quantity int
 			if e = rows.Scan(&sku, &quantity); e != nil {
+				rows.Close()
 				return e
 			}
-			if _, e = tx.ExecContext(ctx, `INSERT INTO stock_entries (id,request_id,sku,quantity,warehouse,created_at) VALUES (?,?,?,?,?,?)`, fmt.Sprintf("STK-%d", time.Now().UnixNano()), id, sku, quantity, "华东一号仓", nowUTC()); e != nil {
-				return e
-			}
+			items = append(items, struct {
+				sku      string
+				quantity int
+			}{sku: sku, quantity: quantity})
 		}
 		if e = rows.Err(); e != nil {
+			rows.Close()
 			return e
+		}
+		rows.Close()
+		for _, item := range items {
+			if _, e = tx.ExecContext(ctx, `INSERT INTO stock_entries (id,request_id,sku,quantity,warehouse,created_at) VALUES (?,?,?,?,?,?)`, fmt.Sprintf("STK-%d", time.Now().UnixNano()), id, item.sku, item.quantity, "华东一号仓", nowUTC()); e != nil {
+				return e
+			}
 		}
 		if e = s.transitionTx(ctx, tx, id, SupplyStocked, "仓库管理员", "库存已核销"); e != nil {
 			return e
