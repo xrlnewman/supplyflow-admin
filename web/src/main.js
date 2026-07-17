@@ -38,6 +38,12 @@ let toastTimer
 let dataSource = '演示数据'
 let isSyncing = false
 
+function displayCopy(root) {
+  const rules = [['候诊', '待入库'], ['健康回访', '供应商跟进'], ['回访', '采购跟进'], ['临床', '采购'], ['科室', '采购品类'], ['人次', '单']]
+  const walker = document.createTreeWalker(root, 4)
+  while (walker.nextNode()) rules.forEach(([from, to]) => { walker.currentNode.nodeValue = walker.currentNode.nodeValue.replaceAll(from, to) })
+}
+
 function timeLabel(value) {
   const match = String(value ?? '').match(/T(\d{2}:\d{2})/)
   return match?.[1] || String(value ?? '').slice(0, 5) || '--:--'
@@ -92,6 +98,8 @@ function render() {
   const title = nav.find((item) => item[0] === page)?.[1] || '运营总览'
   const content = page === 'overview' ? overview() : page === 'queue' ? queue() : page === 'doctors' ? doctors() : page === 'patients' ? patients() : page === 'followups' ? followups() : mobileView()
   document.querySelector('#app').innerHTML = `<div class="shell"><aside><div class="brand"><span>⌁</span><div><strong>SupplyFlow</strong><small>采购供应链运营中心</small></div></div><div class="clinic">● 上海静安联合供应链中心　⌄</div><p class="caption">临床运营</p><nav>${nav.map((item) => `<button class="${page === item[0] ? 'active' : ''}" data-page="${item[0]}"><i>${item[2]}</i>${item[1]}${item[0] === 'queue' ? '<em>8</em>' : ''}</button>`).join('')}</nav><div class="user"><b>许</b><span><strong>许汝林</strong><small>运营管理员</small></span></div></aside><main>${header(title)}<section class="heading"><div><p>THURSDAY, JUL 16 · SUPPLYFLOW</p><h1>${title} <i>✦</i></h1><label>让每一次采购单，都有被照顾的下一步。</label></div><button class="primary" data-action="create-appointment">＋ 新建采购单</button></section>${content}<footer>SupplyFlow 采购供应链运营 · 免费开源 · 演示数据不含诊断与真实客户信息</footer><div class="toast" ${toast ? '' : 'hidden'}>${toast}</div></main></div>`
+  const root = document.querySelector('#app')
+  displayCopy(root)
   bind()
 }
 
