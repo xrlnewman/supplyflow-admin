@@ -145,6 +145,14 @@ type SupplyStore interface {
 	ListPurchaseEvents(context.Context, string) ([]PurchaseEvent, error)
 }
 
+// selectSupplyStore keeps demo startup deterministic while routing production SQLStore through MySQL.
+func selectSupplyStore(base CareStore) SupplyStore {
+	if store, ok := base.(*SQLStore); ok && store.db != nil {
+		return NewSupplySQLStore(store.db)
+	}
+	return NewSupplyMemoryStore()
+}
+
 type SupplyMemoryStore struct {
 	mu       sync.RWMutex
 	seq      atomic.Uint64

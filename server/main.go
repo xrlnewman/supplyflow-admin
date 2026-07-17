@@ -50,7 +50,7 @@ func NewRouter(store CareStore, idem idempotencyStore) *gin.Engine {
 		c.Next()
 	})
 	svc := NewCareService(store, idem)
-	supplySvc := NewSupplyService(NewSupplyMemoryStore(), idem)
+	supplySvc := NewSupplyService(selectSupplyStore(store), idem)
 
 	r.GET("/healthz", func(c *gin.Context) {
 		respond(c, http.StatusOK, gin.H{"service": "supplyflow", "status": "ok", "time": time.Now().UTC()})
